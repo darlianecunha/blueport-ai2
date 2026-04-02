@@ -1,13 +1,1 @@
-<svg width="256" height="256" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
-  <rect width="256" height="256" rx="28" fill="#FFFFFF"/>
-  <!-- Wave -->
-  <path d="M20,170 C60,140 100,200 150,170 C190,140 230,200 260,170" stroke="#0B3C5D" stroke-width="12" fill="none" stroke-linecap="round"/>
-  <!-- Pier posts -->
-  <rect x="36" y="130" width="12" height="45" rx="6" fill="#263238"/>
-  <rect x="70" y="140" width="12" height="35" rx="6" fill="#263238"/>
-  <rect x="102" y="120" width="12" height="55" rx="6" fill="#263238"/>
-  <!-- Sensor dot + arcs -->
-  <circle cx="170" cy="80" r="12" fill="#FF6F61"/>
-  <circle cx="170" cy="80" r="22" fill="none" stroke="#1CA6A3" stroke-width="3" opacity="0.6"/>
-  <circle cx="170" cy="80" r="34" fill="none" stroke="#1CA6A3" stroke-width="2" opacity="0.35"/>
-</svg>
+
