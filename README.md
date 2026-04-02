@@ -1,123 +1,121 @@
-# 🌊 BluePort AI — Environmental Intelligence for Ports & Coastal Waters
+# BluePort AI - Waste Classification Bot
 
-> Plataforma de inteligência ambiental para portos e águas costeiras, combinando dados ambientais, identidade visual e análise de indicadores de sustentabilidade portuária.
+A Telegram bot that classifies waste materials from photos using **CLIP vision** (OpenAI ViT-B/32) with a custom linear probe, running entirely **offline** with no external API calls.
 
-<p>
-  <img src="https://img.shields.io/badge/HTML5-E34F26?style=flat-square&logo=html5&logoColor=white" />
-  <img src="https://img.shields.io/badge/SVG-FFB13B?style=flat-square&logo=svg&logoColor=black" />
-  <img src="https://img.shields.io/badge/status-em_desenvolvimento-blue?style=flat-square" />
-  <img src="https://img.shields.io/badge/foco-sustentabilidade_portuária-0B3C5D?style=flat-square" />
-</p>
+Built as a research prototype exploring AI-driven waste sorting for the Brazilian recycling context.
 
----
+![Python](https://img.shields.io/badge/Python-3.10+-blue)
+![PyTorch](https://img.shields.io/badge/PyTorch-2.3-red)
+![CLIP](https://img.shields.io/badge/Model-CLIP_ViT--B%2F32-green)
+![License](https://img.shields.io/badge/License-MIT-yellow)
 
-## 📋 Sobre o Projeto
+## How It Works
 
-O **BluePort AI** é uma plataforma de inteligência ambiental focada em portos e regiões costeiras. O projeto une análise de dados ambientais, monitoramento de KPIs portuários e visualização interativa para apoiar decisões sustentáveis no setor de logística marítima.
-
-**Tagline:** *Environmental Intelligence for Ports and Coastal Waters*
-
----
-
-## 🎨 Identidade Visual
-
-| Elemento | Cor | Hex |
-|----------|-----|-----|
-| Deep Blue | 🔵 | `#0B3C5D` |
-| Sea Green | 🟢 | `#1CA6A3` |
-| Coral | 🟠 | `#FF6F61` |
-| Graphite | ⬛ | `#263238` |
-
----
-
-## 🗂️ Estrutura do Repositório
+The user sends a photo via Telegram. The bot downloads the image, extracts visual features using CLIP's frozen encoder, and passes them through a lightweight linear probe (16 KB) trained on ~11,400 waste images across 6 categories. The prediction and confidence score are returned in seconds.
 
 ```
-📁 blueport-ai2/
-├── index.html              # Landing page principal
-├── blueport_logo.svg       # Logo horizontal primária
-├── blueport_icon.svg       # Ícone quadrado (app / favicon)
-├── blueport_icon_512.png   # PNG fallback do ícone
-└── README.md
+User sends photo → CLIP encodes image → Linear probe classifies → Bot replies with label + confidence
 ```
 
----
+If no trained model is available, the system falls back gracefully to CLIP zero-shot classification using optimised text prompts for 9 waste categories.
 
-## ▶️ Como Executar
+## Results
 
-### Localmente
+Evaluated on 11,454 images across 6 waste categories:
+
+| Category | Accuracy | Images |
+|---|---|---|
+| Electronic | 98.1% | 2,543 |
+| Paper | 96.4% | 2,237 |
+| Metal | 95.6% | 2,247 |
+| Glass | 94.3% | 2,036 |
+| Plastic | 91.8% | 2,219 |
+| Organic | 87.8% | 172 |
+| **Overall** | **95.2%** | **11,454** |
+
+The organic category has lower accuracy due to class imbalance (172 vs ~2,200 images for other classes).
+
+## Key Features
+
+**Privacy-first architecture**: all inference runs locally. No images are sent to external services.
+
+**Lightweight domain adaptation**: instead of fine-tuning the full CLIP model, only a 16 KB linear layer is trained on top of frozen CLIP features. This keeps computational costs minimal while achieving 95%+ accuracy.
+
+**Confidence calibration**: softmax temperature scaling and a configurable rejection threshold filter out uncertain predictions.
+
+**Graceful fallback**: if the trained model is unavailable, the system automatically switches to CLIP zero-shot classification with hand-crafted prompts.
+
+**Bilingual support**: categories and interface available in Portuguese (PT-BR) and English, configurable via environment variable.
+
+## Project Structure
+
+```
+├── waste_bot.py              # Telegram bot (handlers, commands)
+├── waste_vision.py           # CLIP inference engine + logging
+├── train_linear_probe.py     # Training script for domain adaptation
+├── eval_batch.py             # Batch evaluation with ground truth
+├── check_dataset.py          # Dataset validation and cleaning
+├── labels.json               # Category taxonomy (PT/EN)
+├── blueport_linear.pt        # Trained linear probe weights (16 KB)
+├── requirements.txt          # Dependencies
+├── .env.example              # Environment config template
+└── LICENSE
+```
+
+## Setup
+
+**Requirements**: Python 3.10+, pip
 
 ```bash
-git clone https://github.com/darlianecunha/blueport-ai2.git
-cd blueport-ai2
-# Abra o index.html no navegador
+# Clone the repository
+git clone https://github.com/darlianecunha/blueport-ai-wastebot.git
+cd blueport-ai-wastebot
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Configure environment
+cp .env.example .env
+# Edit .env and add your Telegram bot token (from @BotFather)
+
+# Run
+python waste_bot.py
 ```
 
-### Deploy estático
+## Tech Stack
 
-Compatível com qualquer hospedagem estática:
+**Vision model**: OpenAI CLIP (ViT-B/32), frozen as feature extractor
 
-```bash
-# GitHub Pages — ative nas configurações do repositório (Settings > Pages)
-# Netlify ou Vercel — arraste a pasta ou conecte o repositório
-```
+**Domain adaptation**: custom linear probe trained on waste images (PyTorch)
 
-> Após o deploy, substitua os links de contato no rodapé da landing page.
+**Interface**: Telegram Bot API (python-telegram-bot)
 
----
+**Data pipeline**: Pillow for image processing, Pandas for logging and analysis, SQLite for persistence
 
-## 🛠️ Tecnologias Utilizadas
+## Dataset
 
-<p>
-  <img src="https://img.shields.io/badge/HTML5-E34F26?style=flat-square&logo=html5&logoColor=white" />
-  <img src="https://img.shields.io/badge/SVG-FFB13B?style=flat-square&logo=svg&logoColor=black" />
-</p>
+Training and evaluation used ~11,400 images across 6 waste categories (plastic, paper, metal, glass, organic, electronic), sourced from public datasets including TACO and TrashNet. The dataset is not included in this repository due to size (1.9 GB). The `check_dataset.py` utility validates image integrity and quarantines corrupted files.
 
-- **HTML5** — estrutura da landing page
-- **SVG** — identidade visual vetorial escalável
-- **PNG** — fallback de ícone para dispositivos e navegadores antigos
+## Commands
 
----
+| Command | Description |
+|---|---|
+| `/start` | Welcome message and instructions |
+| `/stats` | Total images analysed + average confidence |
+| `/count` | Total image counter |
+| Send a photo | Returns waste classification + confidence |
 
-## 🌍 Contexto e Relevância
+## Possible Extensions
 
-Portos são nós estratégicos da logística global e, ao mesmo tempo, zonas de alto impacto ambiental. O BluePort AI nasce para preencher a lacuna entre dados ambientais disponíveis e a tomada de decisão sustentável no setor portuário.
+- Web dashboard for monitoring classification metrics
+- Integration with IoT smart bins for automated sorting
+- Feedback loop for continuous model improvement
+- Gravimetric composition reports for PGRS compliance
 
-Aplicações previstas:
-- Monitoramento de hotspots ambientais em portos brasileiros
-- Painel de KPIs de sustentabilidade portuária
-- Suporte a pesquisas sobre emissões, qualidade da água e logística verde
+## Author
 
----
+**Darliane Cunha** - PhD in Finance and Sustainability
 
-## 📌 Status do Projeto
+## License
 
-- [x] Identidade visual definida (logo, ícone, paleta)
-- [x] Landing page inicial
-- [ ] Dashboard Streamlit para hotspots e KPIs portuários
-- [ ] Press kit completo (zonas de segurança, versão monocromática)
-- [ ] Integração com dados abertos (ANTAQ, IBAMA, gov.br)
-- [ ] Deploy via GitHub Pages
-
----
-
-## 🔗 Histórico de Versões
-
-| Versão | Repositório | Descrição |
-|--------|-------------|-----------|
-| v1 | [blueport-ia](https://github.com/darlianecunha/blueport-ia) | Conceito inicial |
-| v2 | **blueport-ai2** (este) | Identidade visual + landing page |
-
----
-
-## 📄 Licença
-
-Este projeto está sob a licença MIT. Consulte o arquivo [LICENSE](LICENSE) para mais detalhes.
-
----
-
-## 👩‍🔬 Autora
-
-**Darliane Cunha**
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=flat-square&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/darlianecunha/)
-[![GitHub](https://img.shields.io/badge/GitHub-181717?style=flat-square&logo=github&logoColor=white)](https://github.com/darlianecunha)
+This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.

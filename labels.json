@@ -1,0 +1,81 @@
+{
+  "categories": [
+    {
+      "key": "plastic",
+      "pt": "plástico",
+      "en": "plastic",
+      "examples": [
+        "garrafa PET",
+        "saco plástico",
+        "embalagem plástica",
+        "tampa plástica"
+      ]
+    },
+    {
+      "key": "paper",
+      "pt": "papel",
+      "en": "paper",
+      "examples": [
+        "folha de papel",
+        "jornal",
+        "papelão fino"
+      ]
+    },
+    {
+      "key": "cardboard",
+      "pt": "papelão",
+      "en": "cardboard",
+      "examples": [
+        "caixa de papelão",
+        "embalagem de papelão"
+      ]
+    },
+    {
+      "key": "glass",
+      "pt": "vidro",
+      "en": "glass",
+      "examples": [
+        "garrafa de vidro",
+        "pote de vidro"
+      ]
+    },
+    {
+      "key": "metal",
+      "pt": "metal",
+      "en": "metal",
+      "examples": [
+        "lata de alumínio",
+        "lata de aço",
+        "tampa metálica"
+      ]
+    },
+    {
+      "key": "organic",
+      "pt": "orgânico",
+      "en": "organic",
+      "examples": [
+        "resto de comida",
+        "casca de fruta",
+        "folhas"
+      ]
+    },
+    {
+      "key": "ewaste",
+      "pt": "eletrônico",
+      "en": "e-waste",
+      "examples": [
+        "fone de ouvido",
+        "cabo USB",
+        "placa eletrônica"
+      ]
+    },
+    {
+      "key": "other",
+      "pt": "outros",
+      "en": "other",
+      "examples": [
+        "texto genérico"
+      ]
+    }
+  ]
+}
