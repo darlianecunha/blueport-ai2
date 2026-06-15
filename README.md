@@ -116,6 +116,4 @@ Training and evaluation used ~11,400 images across 6 waste categories (plastic, 
 
 **Darliane Cunha** - PhD in Finance and Sustainability
 
-## License
 
-This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
