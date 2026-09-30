@@ -1,119 +1,110 @@
-# BluePort AI - Waste Classification Bot
+# BluePort AI · Waste classification for ports
 
-A Telegram bot that classifies waste materials from photos using **CLIP vision** (OpenAI ViT-B/32) with a custom linear probe, running entirely **offline** with no external API calls.
+**Computer vision that sorts waste photos into six recycling streams with a frozen CLIP encoder and a 3,078-parameter linear probe: 94.6% cross-validated accuracy on 11,451 images, served as a public demo and as an offline Telegram bot**
 
-Built as a research prototype exploring AI-driven waste sorting for the Brazilian recycling context.
-
+[![Try it](https://img.shields.io/badge/Try%20it-Hugging%20Face%20Space-ffcc00?logo=huggingface)](https://huggingface.co/spaces/HF_USER/blueport-ai)
+[![Site](https://img.shields.io/badge/Site-blue--port--ia.vercel.app-2ea44f)](https://blue-port-ia.vercel.app)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 ![Python](https://img.shields.io/badge/Python-3.10+-blue)
-![PyTorch](https://img.shields.io/badge/PyTorch-2.3-red)
 ![CLIP](https://img.shields.io/badge/Model-CLIP_ViT--B%2F32-green)
-![License](https://img.shields.io/badge/License-MIT-yellow)
 
-## How It Works
+<p align="center">
+  <img src="docs/gallery/space_demo.png" width="820" alt="BluePort AI demo: a photo of a plastic bag is classified with the top-3 probabilities">
+</p>
 
-The user sends a photo via Telegram. The bot downloads the image, extracts visual features using CLIP's frozen encoder, and passes them through a lightweight linear probe (16 KB) trained on ~11,400 waste images across 6 categories. The prediction and confidence score are returned in seconds.
+## What this is
 
-```
-User sends photo → CLIP encodes image → Linear probe classifies → Bot replies with label + confidence
-```
+A user sends a photo of a waste item; the system returns the recycling stream (e-waste, metal, organic, paper/cardboard, plastic or glass) with a confidence score and a handling hint. Instead of fine-tuning a vision model, the frozen [CLIP ViT-B/32](https://huggingface.co/openai/clip-vit-base-patch32) encoder produces a 512-dimensional embedding and a logistic-regression head does the classification. Training the head takes seconds on a laptop and the weights are 16 KB.
 
-If no trained model is available, the system falls back gracefully to CLIP zero-shot classification using optimised text prompts for 9 waste categories.
+The project started in the Omdena *Ganges River plastic interceptor* challenge (riverine plastic detection) and was adapted to port waste streams, where MARPOL Annex V requires segregation of ship-generated waste, as part of research on port sustainability at the Federal University of Maranhão.
+
+Two ways to use it:
+
+| Interface | Where it runs | For whom |
+|---|---|---|
+| **Web demo** (Gradio) | Hugging Face Space, nothing to install | Anyone: drop a photo, read the result |
+| **Telegram bot** (`waste_bot.py`) | Your own machine, fully offline, no image leaves it | Field use where privacy matters |
 
 ## Results
 
-Evaluated on 11,454 images across 6 waste categories:
+Evaluation is 5-fold stratified cross-validation on all 11,451 images (every image is predicted by a model that never saw it). An earlier version of this README reported 95.2%, measured on the training images; the cross-validated figure below is the one to quote.
 
-| Category | Accuracy | Images |
-|---|---|---|
-| Electronic | 98.1% | 2,543 |
-| Paper | 96.4% | 2,237 |
-| Metal | 95.6% | 2,247 |
-| Glass | 94.3% | 2,036 |
-| Plastic | 91.8% | 2,219 |
-| Organic | 87.8% | 172 |
-| **Overall** | **95.2%** | **11,454** |
+| Class | Images | Precision | Recall | F1 |
+|---|---|---|---|---|
+| E-waste | 2,543 | 0.984 | 0.982 | 0.983 |
+| Metal | 2,247 | 0.953 | 0.949 | 0.951 |
+| Organic | 172 | 0.815 | 0.948 | 0.876 |
+| Paper / cardboard | 2,237 | 0.938 | 0.954 | 0.946 |
+| Plastic | 2,217 | 0.918 | 0.908 | 0.913 |
+| Glass | 2,035 | 0.944 | 0.931 | 0.937 |
+| **All** | 11,451 | **accuracy 0.946** | balanced accuracy 0.945 | macro F1 0.935 |
 
-The organic category has lower accuracy due to class imbalance (172 vs ~2,200 images for other classes).
+## Gallery
 
-## Key Features
+| Cross-validated confusion matrix | The demo |
+|---|---|
+| <img src="docs/gallery/confusion_matrix_cv.png" width="420"> | <img src="docs/gallery/space_demo.png" width="420"> |
 
-**Privacy-first architecture**: all inference runs locally. No images are sent to external services.
+Most errors are between plastic, paper and glass containers of similar shape. Organic is the smallest class; class weighting lifts its recall to 95% at some cost in precision.
 
-**Lightweight domain adaptation**: instead of fine-tuning the full CLIP model, only a 16 KB linear layer is trained on top of frozen CLIP features. This keeps computational costs minimal while achieving 95%+ accuracy.
-
-**Confidence calibration**: softmax temperature scaling and a configurable rejection threshold filter out uncertain predictions.
-
-**Graceful fallback**: if the trained model is unavailable, the system automatically switches to CLIP zero-shot classification with hand-crafted prompts.
-
-**Bilingual support**: categories and interface available in Portuguese (PT-BR) and English, configurable via environment variable.
-
-## Project Structure
+## Method
 
 ```
-├── waste_bot.py              # Telegram bot (handlers, commands)
-├── waste_vision.py           # CLIP inference engine + logging
-├── train_linear_probe.py     # Training script for domain adaptation
-├── eval_batch.py             # Batch evaluation with ground truth
-├── check_dataset.py          # Dataset validation and cleaning
-├── labels.json               # Category taxonomy (PT/EN)
-├── blueport_linear.pt        # Trained linear probe weights (16 KB)
-├── requirements.txt          # Dependencies
-├── .env.example              # Environment config template
-└── LICENSE
+photo → CLIP ViT-B/32 image encoder (frozen) → 512-d embedding, L2-normalised
+      → logistic regression (6 × 512 weights + 6 biases, class-balanced) → softmax → label, confidence
 ```
 
-## Setup
+- Confidence below 50% is flagged as uncertain (mixed item, unusual object or outside the six classes).
+- The bot additionally supports CLIP zero-shot classification with hand-written prompts (`waste_vision.py`) as a fallback when no trained head is available.
+- Dataset: public waste-image collections including TACO and TrashNet, checked with `check_dataset.py` (corrupted files quarantined). Not redistributed here (1.9 GB).
 
-**Requirements**: Python 3.10+, pip
+## Reproducing
 
 ```bash
-# Clone the repository
-git clone https://github.com/darlianecunha/blueport-ai-wastebot.git
-cd blueport-ai-wastebot
-
-# Install dependencies
 pip install -r requirements.txt
+# 1. put images in dataset/<class>/ (six folders)
+python extract_features.py --dataset dataset      # feats.npy, labels.npy, index.json (about 10 min on CPU)
+python train_probe_cv.py                            # cross-validation report + probe.npz + blueport_linear_v2.pt
+```
 
-# Configure environment
-cp .env.example .env
-# Edit .env and add your Telegram bot token (from @BotFather)
+To run the Telegram bot offline:
 
-# Run
+```bash
+cp .env.example .env        # add the token from @BotFather
 python waste_bot.py
 ```
 
-## Tech Stack
+To run the web demo locally: copy `app.py`, `probe.npz`, `classes.json` and `examples/` from the Space and `python app.py`.
 
-**Vision model**: OpenAI CLIP (ViT-B/32), frozen as feature extractor
+## Repository map
 
-**Domain adaptation**: custom linear probe trained on waste images (PyTorch)
-
-**Interface**: Telegram Bot API (python-telegram-bot)
-
-**Data pipeline**: Pillow for image processing, Pandas for logging and analysis, SQLite for persistence
-
-## Dataset
-
-Training and evaluation used ~11,400 images across 6 waste categories (plastic, paper, metal, glass, organic, electronic), sourced from public datasets including TACO and TrashNet. The dataset is not included in this repository due to size (1.9 GB). The `check_dataset.py` utility validates image integrity and quarantines corrupted files.
-
-## Commands
-
-| Command | Description |
+| Path | Content |
 |---|---|
-| `/start` | Welcome message and instructions |
-| `/stats` | Total images analysed + average confidence |
-| `/count` | Total image counter |
-| Send a photo | Returns waste classification + confidence |
+| `extract_features.py` | CLIP embeddings for a folder of images (Hugging Face `transformers`) |
+| `train_probe_cv.py` | Cross-validation, final fit, export to `probe.npz` and `.pt` |
+| `probe.npz`, `classes.json` | Weights and class order used by the Space |
+| `blueport_linear_v2.pt` | Same weights as a PyTorch state dict for the bot |
+| `eval_cv.json` | Full cross-validation report and confusion matrix |
+| `waste_bot.py`, `waste_vision.py` | Telegram bot and inference engine (OpenAI `clip` package) |
+| `train_linear_probe.py`, `eval_batch.py` | Original PyTorch training and batch evaluation (v1) |
+| `check_dataset.py` | Dataset validation and quarantine |
+| `labels.json` | Category taxonomy, Portuguese and English |
+| `docs/gallery/` | Figures used in this README |
 
-## Possible Extensions
+## Related projects
 
-- Web dashboard for monitoring classification metrics
-- Integration with IoT smart bins for automated sorting
-- Feedback loop for continuous model improvement
-- Gravimetric composition reports for PGRS compliance
+- [blue-port-ia](https://github.com/darlianecunha/blue-port-ia): the project website
+- [atributosods](https://github.com/darlianecunha/atributosods): SDG assessment framework for ports, where waste management is one of the 84 indicators
+- [maritimeco2](https://github.com/darlianecunha/maritimeco2): at-berth CO₂ estimation, the emissions side of port sustainability
 
-## Author
+## How to cite
 
-**Darliane Cunha** - PhD in Finance and Sustainability
+Metadata in [`CITATION.cff`](CITATION.cff).
 
+> Cunha, D. R. (2026). *BluePort AI: waste classification for ports using CLIP and a linear probe* (Version 2.0) [Software]. https://github.com/darlianecunha/blueport-ai2
 
+## Author and licence
+
+**Darliane Ribeiro Cunha, PhD**. [ribeirocunha.com](https://ribeirocunha.com) · [ORCID 0000-0003-2548-1237](https://orcid.org/0000-0003-2548-1237)
+
+Code and weights: [MIT](LICENSE). CLIP weights: OpenAI, MIT. Training images: their respective public licences.

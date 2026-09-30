@@ -2,12 +2,12 @@ cff-version: 1.2.0
 message: "If you use this software, please cite it as below."
 type: software
 title: "BluePort AI: waste classification for ports using computer vision (CLIP)"
-abstract: "A privacy-first Telegram bot that classifies waste from photos using a frozen CLIP (ViT-B/32) encoder with a lightweight linear probe, reaching about 95% accuracy across six categories and running entirely offline."
-version: "1.0.0"
-date-released: "2026-06-15"
+abstract: "A privacy-first Telegram bot that classifies waste from photos using a frozen CLIP (ViT-B/32) encoder with a lightweight linear probe, reaching 94.6% cross-validated accuracy across six categories, served as a Hugging Face Space and as an offline Telegram bot."
+version: "2.0.0"
+date-released: "2026-09-30"
 license: MIT
 repository-code: "https://github.com/darlianecunha/blueport-ai2"
-url: "https://blueportai.manus.space"
+url: "https://blue-port-ia.vercel.app"
 authors:
   - family-names: "Cunha"
     given-names: "Darliane Ribeiro"

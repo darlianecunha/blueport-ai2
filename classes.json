@@ -1,0 +1,32 @@
+[
+ {
+  "key": "eletronico",
+  "en": "E-waste",
+  "pt": "Eletrônico"
+ },
+ {
+  "key": "metal",
+  "en": "Metal",
+  "pt": "Metal"
+ },
+ {
+  "key": "organico",
+  "en": "Organic",
+  "pt": "Orgânico"
+ },
+ {
+  "key": "papel",
+  "en": "Paper / cardboard",
+  "pt": "Papel / papelão"
+ },
+ {
+  "key": "plastico",
+  "en": "Plastic",
+  "pt": "Plástico"
+ },
+ {
+  "key": "vidro",
+  "en": "Glass",
+  "pt": "Vidro"
+ }
+]
