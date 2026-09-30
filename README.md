@@ -2,7 +2,8 @@
 
 **Computer vision that sorts waste photos into six recycling streams with a frozen CLIP encoder and a 3,078-parameter linear probe: 94.6% cross-validated accuracy on 11,451 images, served as a public demo and as an offline Telegram bot**
 
-[![Try it](https://img.shields.io/badge/Try%20it-Hugging%20Face%20Space-ffcc00?logo=huggingface)](https://huggingface.co/spaces/HF_USER/blueport-ai)
+[![Try it](https://img.shields.io/badge/Try%20it-in%20your%20browser-2ea44f)](https://blue-port-ia.vercel.app/#try)
+[![Hugging Face](https://img.shields.io/badge/Hugging%20Face-Space-ffcc00?logo=huggingface)](https://huggingface.co/spaces/Darliane/blueport-ai)
 [![Site](https://img.shields.io/badge/Site-blue--port--ia.vercel.app-2ea44f)](https://blue-port-ia.vercel.app)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 ![Python](https://img.shields.io/badge/Python-3.10+-blue)
@@ -22,7 +23,7 @@ Two ways to use it:
 
 | Interface | Where it runs | For whom |
 |---|---|---|
-| **Web demo** (Gradio) | Hugging Face Space, nothing to install | Anyone: drop a photo, read the result |
+| **Web demo** | Runs inside the visitor's browser (CLIP in ONNX via Transformers.js); hosted on [blue-port-ia.vercel.app](https://blue-port-ia.vercel.app/#try) and mirrored on Hugging Face | Anyone: drop a photo, read the result; no photo is uploaded |
 | **Telegram bot** (`waste_bot.py`) | Your own machine, fully offline, no image leaves it | Field use where privacy matters |
 
 ## Results
@@ -74,7 +75,7 @@ cp .env.example .env        # add the token from @BotFather
 python waste_bot.py
 ```
 
-To run the web demo locally: copy `app.py`, `probe.npz`, `classes.json` and `examples/` from the Space and `python app.py`.
+To run the web demo locally: `python -m http.server` inside the [blue-port-ia](https://github.com/darlianecunha/blue-port-ia) site folder and open `index.html`.
 
 ## Repository map
 
@@ -82,7 +83,7 @@ To run the web demo locally: copy `app.py`, `probe.npz`, `classes.json` and `exa
 |---|---|
 | `extract_features.py` | CLIP embeddings for a folder of images (Hugging Face `transformers`) |
 | `train_probe_cv.py` | Cross-validation, final fit, export to `probe.npz` and `.pt` |
-| `probe.npz`, `classes.json` | Weights and class order used by the Space |
+| `probe.npz`, `probe.json`, `classes.json` | Weights and class order (numpy for Python, JSON for the browser demo) |
 | `blueport_linear_v2.pt` | Same weights as a PyTorch state dict for the bot |
 | `eval_cv.json` | Full cross-validation report and confusion matrix |
 | `waste_bot.py`, `waste_vision.py` | Telegram bot and inference engine (OpenAI `clip` package) |
